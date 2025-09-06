@@ -40,7 +40,16 @@
                     Padding="20,10"
                     Background="#FF0078D4"
                     Command="{Binding ShowUserInfoDialogCommand}"
-                    Content="ユーザー情報入力ダイアログ"
+                    Content="ユーザー情報入力ダイアログ（非モーダル）"
+                    FontSize="14"
+                    Foreground="White" />
+
+                <Button
+                    Margin="0,0,0,15"
+                    Padding="20,10"
+                    Background="#FF28A745"
+                    Command="{Binding ShowUserInfoDialogModalAsyncCommand}"
+                    Content="ユーザー情報入力ダイアログ（非同期モーダル）"
                     FontSize="14"
                     Foreground="White" />
 

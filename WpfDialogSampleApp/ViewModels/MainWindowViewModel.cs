@@ -14,27 +14,47 @@ namespace WpfDialogSampleApp.ViewModels
 
         private readonly IDialogService _dialogService;
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(IDialogService dialogService)
         {
-            _dialogService = new DialogService();
+            _dialogService = dialogService;
+        }
+
+        // デフォルトコンストラクターも提供（デザイナー対応）
+        public MainWindowViewModel() : this(ServiceLocator.TryGetService<IDialogService>() ?? new DialogService())
+        {
         }
 
         [RelayCommand]
         private void ShowUserInfoDialog()
         {
-            var viewModel = new UserInfoDialogViewModel();
+            // 改善された型安全なダイアログ表示
+            var handle = _dialogService.Show<UserInfoDialogViewModel>();
             
-            // 非モーダルで表示（既に開いている場合は何もしない）
-            _dialogService.Show(viewModel);
-            
-            // ダイアログが閉じられた時の処理（PropertyChangedでDialogResultを監視）
-            viewModel.PropertyChanged += (s, e) =>
+            // ダイアログが閉じられた時の処理（イベントベース）
+            handle.Closed += OnUserInfoDialogClosed;
+        }
+
+        private void OnUserInfoDialogClosed(object? sender, DialogClosedEventArgs e)
+        {
+            if (e.Result == true && e.ViewModel is UserInfoDialogViewModel viewModel && viewModel.IsValid)
             {
-                if (e.PropertyName == nameof(viewModel.DialogResult) && viewModel.DialogResult == true && viewModel.IsValid)
-                {
-                    UserInfoDisplay = $"名前: {viewModel.UserInfo.Name}, メール: {viewModel.UserInfo.Email}, 年齢: {viewModel.UserInfo.Age}";
-                }
-            };
+                UserInfoDisplay = $"名前: {viewModel.UserInfo.Name}, メール: {viewModel.UserInfo.Email}, 年齢: {viewModel.UserInfo.Age}";
+            }
+        }
+
+        [RelayCommand]
+        private async Task ShowUserInfoDialogModalAsync()
+        {
+            // 非同期モーダルダイアログの例
+            var viewModel = new UserInfoDialogViewModel();
+            viewModel.UserInfo.Name = "サンプル"; // 初期設定
+            
+            var result = await _dialogService.ShowModalAsync(viewModel);
+
+            if (result == true)
+            {
+                _dialogService.ShowMessageBox("ユーザー情報が保存されました。", "成功", MessageBoxType.Information);
+            }
         }
 
         [RelayCommand]

@@ -10,26 +10,27 @@ namespace WpfDialogSampleApp.Services
     public class DialogService : IDialogService
     {
         private readonly Dictionary<Type, Type> _dialogMappings = new();
-        private readonly Dictionary<object, DialogBase> _openDialogs = new();
+        private readonly Dictionary<object, DialogHandle> _openDialogs = new();
+        private readonly ServiceContainer? _serviceContainer;
 
-        public DialogService()
+        public DialogService(ServiceContainer? serviceContainer = null)
         {
-            // ViewModelとViewの対応を登録
-            RegisterDialog<UserInfoDialogViewModel, UserInfoDialog>();
+            _serviceContainer = serviceContainer;
         }
 
         /// <summary>
         /// ViewModelとViewの対応を登録
         /// </summary>
-        /// <typeparam name="TViewModel">ViewModelの型</typeparam>
-        /// <typeparam name="TView">Viewの型</typeparam>
         public void RegisterDialog<TViewModel, TView>()
             where TViewModel : class
-            where TView : DialogBase, new()
+            where TView : DialogBase
         {
             _dialogMappings[typeof(TViewModel)] = typeof(TView);
         }
 
+        /// <summary>
+        /// モーダルダイアログを表示
+        /// </summary>
         public bool? ShowModal<TViewModel>(TViewModel viewModel) where TViewModel : class
         {
             var dialog = CreateDialog(viewModel);
@@ -39,29 +40,66 @@ namespace WpfDialogSampleApp.Services
             return dialog.ShowDialog();
         }
 
-        public void Show<TViewModel>(TViewModel viewModel) where TViewModel : class
+        /// <summary>
+        /// 非モーダルダイアログを表示
+        /// </summary>
+        public IDialogHandle Show<TViewModel>(TViewModel viewModel) where TViewModel : class
         {
-            // 既に同じViewModelでダイアログが開いている場合は何もしない
-            if (_openDialogs.ContainsKey(viewModel))
-                return;
+            // 既に同じViewModelでダイアログが開いている場合は既存のハンドルを返す
+            if (_openDialogs.TryGetValue(viewModel, out var existingHandle) && existingHandle.IsActive)
+            {
+                return existingHandle;
+            }
 
             var dialog = CreateDialog(viewModel);
-            if (dialog == null) return;
+            if (dialog == null) 
+                throw new InvalidOperationException($"ViewModel {typeof(TViewModel).Name} に対応するDialogが作成できませんでした。");
 
             SetupDialog(dialog, viewModel);
             
-            // ダイアログが閉じられたときに辞書から削除
-            dialog.Closed += (s, e) => _openDialogs.Remove(viewModel);
+            var handle = new DialogHandle(viewModel, dialog);
+            _openDialogs[viewModel] = handle;
+
+            // ダイアログが閉じられたときにクリーンアップ
+            handle.Closed += (s, e) => _openDialogs.Remove(viewModel);
             
-            _openDialogs[viewModel] = dialog;
             dialog.Show();
+            return handle;
         }
 
+        /// <summary>
+        /// 非同期でモーダルダイアログを表示
+        /// </summary>
         public async Task<bool?> ShowModalAsync<TViewModel>(TViewModel viewModel) where TViewModel : class
         {
             return await Task.Run(() => ShowModal(viewModel));
         }
 
+        /// <summary>
+        /// 型安全なモーダルダイアログファクトリー
+        /// </summary>
+        public bool? ShowModal<TViewModel>(Action<TViewModel>? configure = null) 
+            where TViewModel : class, new()
+        {
+            var viewModel = CreateViewModel<TViewModel>();
+            configure?.Invoke(viewModel);
+            return ShowModal(viewModel);
+        }
+
+        /// <summary>
+        /// 型安全な非モーダルダイアログファクトリー
+        /// </summary>
+        public IDialogHandle Show<TViewModel>(Action<TViewModel>? configure = null) 
+            where TViewModel : class, new()
+        {
+            var viewModel = CreateViewModel<TViewModel>();
+            configure?.Invoke(viewModel);
+            return Show(viewModel);
+        }
+
+        /// <summary>
+        /// メッセージボックスを表示
+        /// </summary>
         public MessageBoxResult ShowMessageBox(string message, string title = "メッセージ", MessageBoxType messageType = MessageBoxType.Information)
         {
             var wpfMessageBoxType = ConvertMessageBoxType(messageType);
@@ -76,10 +114,32 @@ namespace WpfDialogSampleApp.Services
             return ConvertMessageBoxResult(result);
         }
 
+        /// <summary>
+        /// 確認ダイアログを表示
+        /// </summary>
         public bool ShowConfirmation(string message, string title = "確認")
         {
             var result = ShowMessageBox(message, title, MessageBoxType.Question);
             return result == MessageBoxResult.Yes;
+        }
+
+        /// <summary>
+        /// すべてのダイアログを閉じる
+        /// </summary>
+        public void CloseAllDialogs()
+        {
+            var handles = _openDialogs.Values.ToList();
+            foreach (var handle in handles)
+            {
+                handle.Close();
+            }
+            _openDialogs.Clear();
+        }
+
+        private TViewModel CreateViewModel<TViewModel>() where TViewModel : class, new()
+        {
+            // DIコンテナーが利用可能な場合は使用
+            return _serviceContainer?.TryGetService<TViewModel>() ?? new TViewModel();
         }
 
         private DialogBase? CreateDialog<TViewModel>(TViewModel viewModel) where TViewModel : class
@@ -87,6 +147,13 @@ namespace WpfDialogSampleApp.Services
             if (!_dialogMappings.TryGetValue(typeof(TViewModel), out var dialogType))
             {
                 throw new InvalidOperationException($"ViewModel {typeof(TViewModel).Name} に対応するDialogが登録されていません。");
+            }
+
+            // DIコンテナーが利用可能な場合は使用を試行
+            if (_serviceContainer != null)
+            {
+                var dialogFromDI = _serviceContainer.TryGetService(dialogType) as DialogBase;
+                if (dialogFromDI != null) return dialogFromDI;
             }
 
             return Activator.CreateInstance(dialogType) as DialogBase;
@@ -111,6 +178,8 @@ namespace WpfDialogSampleApp.Services
                 });
             }
         }
+
+        #region Helper Methods
 
         private static MessageBoxButton ConvertMessageBoxType(MessageBoxType messageType)
         {
@@ -144,6 +213,53 @@ namespace WpfDialogSampleApp.Services
                 _ => MessageBoxResult.None
             };
         }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// ダイアログハンドルの実装
+    /// </summary>
+    internal class DialogHandle : IDialogHandle
+    {
+        private readonly DialogBase _dialog;
+        private bool _isActive = true;
+
+        public object ViewModel { get; }
+        public bool IsActive => _isActive && !_dialog.IsClosed;
+
+        public event EventHandler<DialogClosedEventArgs>? Closed;
+
+        public DialogHandle(object viewModel, DialogBase dialog)
+        {
+            ViewModel = viewModel;
+            _dialog = dialog;
+
+            // ダイアログが閉じられたときのイベントを監視
+            _dialog.Closed += OnDialogClosed;
+        }
+
+        private void OnDialogClosed(object? sender, EventArgs e)
+        {
+            _isActive = false;
+            var result = _dialog.DialogResult;
+            
+            // ViewModelがIDialogResultを実装している場合、その結果を使用
+            if (ViewModel is IDialogResult dialogResult)
+            {
+                result = dialogResult.DialogResult;
+            }
+
+            Closed?.Invoke(this, new DialogClosedEventArgs(result, ViewModel));
+        }
+
+        public void Close(bool? result = null)
+        {
+            if (IsActive)
+            {
+                _dialog.CloseDialog(result);
+            }
+        }
     }
 
     /// <summary>
@@ -173,5 +289,28 @@ namespace WpfDialogSampleApp.Services
         /// ダイアログの結果
         /// </summary>
         bool? DialogResult { get; set; }
+    }
+
+    /// <summary>
+    /// メッセージボックスの種類
+    /// </summary>
+    public enum MessageBoxType
+    {
+        Information,
+        Warning,
+        Error,
+        Question
+    }
+
+    /// <summary>
+    /// メッセージボックスの結果
+    /// </summary>
+    public enum MessageBoxResult
+    {
+        None,
+        OK,
+        Cancel,
+        Yes,
+        No
     }
 }

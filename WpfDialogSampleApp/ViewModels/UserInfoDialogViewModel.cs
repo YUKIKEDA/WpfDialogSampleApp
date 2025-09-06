@@ -16,6 +16,17 @@ namespace WpfDialogSampleApp.ViewModels
 
         public UserInfoDialogViewModel() : base("ユーザー情報入力")
         {
+            InitializeViewModel();
+        }
+
+        // DI対応の追加コンストラクター（将来の拡張用）
+        public UserInfoDialogViewModel(string title) : base(title)
+        {
+            InitializeViewModel();
+        }
+
+        private void InitializeViewModel()
+        {
             UserInfo.PropertyChanged += OnUserInfoPropertyChanged;
             ValidateInput();
         }

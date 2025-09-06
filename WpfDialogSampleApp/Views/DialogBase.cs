@@ -8,6 +8,11 @@ namespace WpfDialogSampleApp.Views
     public abstract class DialogBase : Window
     {
         private bool _isLoaded;
+        
+        /// <summary>
+        /// ダイアログが閉じられているかどうか
+        /// </summary>
+        public bool IsClosed { get; private set; }
 
         protected DialogBase()
         {
@@ -39,6 +44,8 @@ namespace WpfDialogSampleApp.Views
 
         private void OnDialogClosed(object? sender, EventArgs e)
         {
+            IsClosed = true;
+            
             // イベントハンドラーを解除
             if (Owner != null)
             {

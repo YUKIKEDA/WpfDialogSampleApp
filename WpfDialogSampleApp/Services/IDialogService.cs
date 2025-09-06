@@ -1,3 +1,5 @@
+using WpfDialogSampleApp.Views;
+
 namespace WpfDialogSampleApp.Services
 {
     /// <summary>
@@ -5,6 +7,15 @@ namespace WpfDialogSampleApp.Services
     /// </summary>
     public interface IDialogService
     {
+        /// <summary>
+        /// ViewModelとViewの対応を登録
+        /// </summary>
+        /// <typeparam name="TViewModel">ViewModelの型</typeparam>
+        /// <typeparam name="TView">Viewの型</typeparam>
+        void RegisterDialog<TViewModel, TView>()
+            where TViewModel : class
+            where TView : DialogBase;
+
         /// <summary>
         /// モーダルダイアログを表示
         /// </summary>
@@ -18,7 +29,8 @@ namespace WpfDialogSampleApp.Services
         /// </summary>
         /// <typeparam name="TViewModel">ViewModelの型</typeparam>
         /// <param name="viewModel">ViewModel インスタンス</param>
-        void Show<TViewModel>(TViewModel viewModel) where TViewModel : class;
+        /// <returns>ダイアログのライフサイクル管理オブジェクト</returns>
+        IDialogHandle Show<TViewModel>(TViewModel viewModel) where TViewModel : class;
 
         /// <summary>
         /// 非同期でモーダルダイアログを表示
@@ -27,6 +39,24 @@ namespace WpfDialogSampleApp.Services
         /// <param name="viewModel">ViewModel インスタンス</param>
         /// <returns>ダイアログの結果</returns>
         Task<bool?> ShowModalAsync<TViewModel>(TViewModel viewModel) where TViewModel : class;
+
+        /// <summary>
+        /// 型安全なダイアログファクトリー
+        /// </summary>
+        /// <typeparam name="TViewModel">ViewModelの型</typeparam>
+        /// <param name="configure">ViewModelの設定アクション</param>
+        /// <returns>ダイアログの結果</returns>
+        bool? ShowModal<TViewModel>(Action<TViewModel>? configure = null) 
+            where TViewModel : class, new();
+
+        /// <summary>
+        /// 型安全な非モーダルダイアログファクトリー
+        /// </summary>
+        /// <typeparam name="TViewModel">ViewModelの型</typeparam>
+        /// <param name="configure">ViewModelの設定アクション</param>
+        /// <returns>ダイアログのライフサイクル管理オブジェクト</returns>
+        IDialogHandle Show<TViewModel>(Action<TViewModel>? configure = null) 
+            where TViewModel : class, new();
 
         /// <summary>
         /// メッセージボックスを表示
@@ -44,28 +74,53 @@ namespace WpfDialogSampleApp.Services
         /// <param name="title">タイトル</param>
         /// <returns>ユーザーの選択結果（Yes/No）</returns>
         bool ShowConfirmation(string message, string title = "確認");
+
+        /// <summary>
+        /// すべてのダイアログを閉じる
+        /// </summary>
+        void CloseAllDialogs();
     }
 
     /// <summary>
-    /// メッセージボックスの種類
+    /// ダイアログのライフサイクルを管理するインターフェース
     /// </summary>
-    public enum MessageBoxType
+    public interface IDialogHandle
     {
-        Information,
-        Warning,
-        Error,
-        Question
+        /// <summary>
+        /// ダイアログのViewModel
+        /// </summary>
+        object ViewModel { get; }
+
+        /// <summary>
+        /// ダイアログが閉じられた時のイベント
+        /// </summary>
+        event EventHandler<DialogClosedEventArgs> Closed;
+
+        /// <summary>
+        /// ダイアログを閉じる
+        /// </summary>
+        /// <param name="result">ダイアログの結果</param>
+        void Close(bool? result = null);
+
+        /// <summary>
+        /// ダイアログがアクティブかどうか
+        /// </summary>
+        bool IsActive { get; }
     }
 
     /// <summary>
-    /// メッセージボックスの結果
+    /// ダイアログが閉じられた時のイベント引数
     /// </summary>
-    public enum MessageBoxResult
+    public class DialogClosedEventArgs : EventArgs
     {
-        None,
-        OK,
-        Cancel,
-        Yes,
-        No
+        public bool? Result { get; }
+        public object ViewModel { get; }
+
+        public DialogClosedEventArgs(bool? result, object viewModel)
+        {
+            Result = result;
+            ViewModel = viewModel;
+        }
     }
+
 }
