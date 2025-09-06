@@ -1,6 +1,5 @@
 using System.Windows;
-using WpfDialogSampleApp.ViewModels;
-using WpfDialogSampleApp.Views;
+using WpfDialogSampleApp.Behaviors;
 
 namespace WpfDialogSampleApp.Services
 {
@@ -11,11 +10,8 @@ namespace WpfDialogSampleApp.Services
     {
         private readonly Dictionary<Type, Type> _dialogMappings = new();
         private readonly Dictionary<object, DialogHandle> _openDialogs = new();
-        private readonly ServiceContainer? _serviceContainer;
-
-        public DialogService(ServiceContainer? serviceContainer = null)
+        public DialogService()
         {
-            _serviceContainer = serviceContainer;
         }
 
         /// <summary>
@@ -23,7 +19,7 @@ namespace WpfDialogSampleApp.Services
         /// </summary>
         public void RegisterDialog<TViewModel, TView>()
             where TViewModel : class
-            where TView : DialogBase
+            where TView : Window, new()
         {
             _dialogMappings[typeof(TViewModel)] = typeof(TView);
         }
@@ -67,13 +63,6 @@ namespace WpfDialogSampleApp.Services
             return handle;
         }
 
-        /// <summary>
-        /// 非同期でモーダルダイアログを表示
-        /// </summary>
-        public async Task<bool?> ShowModalAsync<TViewModel>(TViewModel viewModel) where TViewModel : class
-        {
-            return await Task.Run(() => ShowModal(viewModel));
-        }
 
         /// <summary>
         /// 型安全なモーダルダイアログファクトリー
@@ -138,28 +127,39 @@ namespace WpfDialogSampleApp.Services
 
         private TViewModel CreateViewModel<TViewModel>() where TViewModel : class, new()
         {
-            // DIコンテナーが利用可能な場合は使用
-            return _serviceContainer?.TryGetService<TViewModel>() ?? new TViewModel();
+            return new TViewModel();
         }
 
-        private DialogBase? CreateDialog<TViewModel>(TViewModel viewModel) where TViewModel : class
+        private Window? CreateDialog<TViewModel>(TViewModel viewModel) where TViewModel : class
         {
             if (!_dialogMappings.TryGetValue(typeof(TViewModel), out var dialogType))
             {
                 throw new InvalidOperationException($"ViewModel {typeof(TViewModel).Name} に対応するDialogが登録されていません。");
             }
 
-            // DIコンテナーが利用可能な場合は使用を試行
-            if (_serviceContainer != null)
+            var dialog = Activator.CreateInstance(dialogType) as Window;
+            if (dialog != null)
             {
-                var dialogFromDI = _serviceContainer.TryGetService(dialogType) as DialogBase;
-                if (dialogFromDI != null) return dialogFromDI;
+                SetupDialogBehavior(dialog);
             }
-
-            return Activator.CreateInstance(dialogType) as DialogBase;
+            return dialog;
         }
 
-        private void SetupDialog<TViewModel>(DialogBase dialog, TViewModel viewModel) where TViewModel : class
+        private void SetupDialogBehavior(Window dialog)
+        {
+            // XAMLビヘイビアがアタッチされているかチェック
+            var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(dialog);
+            var hasDialogBehavior = behaviors.OfType<DialogBehavior>().Any();
+            
+            if (!hasDialogBehavior)
+            {
+                // ビヘイビアがない場合は新しく追加
+                var behavior = new DialogBehavior();
+                behaviors.Add(behavior);
+            }
+        }
+
+        private void SetupDialog<TViewModel>(Window dialog, TViewModel viewModel) where TViewModel : class
         {
             dialog.DataContext = viewModel;
             dialog.Owner = Application.Current.MainWindow;
@@ -174,7 +174,31 @@ namespace WpfDialogSampleApp.Services
                     {
                         dialogResult.DialogResult = result;
                     }
-                    dialog.CloseDialog(result);
+                    
+                    // DialogBehaviorがアタッチされているかチェック
+                    var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(dialog);
+                    var dialogBehavior = behaviors.OfType<DialogBehavior>().FirstOrDefault();
+                    
+                    if (dialogBehavior != null)
+                    {
+                        dialogBehavior.CloseDialog(result);
+                    }
+                    else
+                    {
+                        // ビヘイビアがない場合は直接閉じる
+                        try
+                        {
+                            if (result.HasValue)
+                            {
+                                dialog.DialogResult = result;
+                            }
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // 非モーダルダイアログの場合は無視
+                        }
+                        dialog.Close();
+                    }
                 });
             }
         }
@@ -222,15 +246,33 @@ namespace WpfDialogSampleApp.Services
     /// </summary>
     internal class DialogHandle : IDialogHandle
     {
-        private readonly DialogBase _dialog;
+        private readonly Window _dialog;
         private bool _isActive = true;
 
         public object ViewModel { get; }
-        public bool IsActive => _isActive && !_dialog.IsClosed;
+        public bool IsActive 
+        { 
+            get
+            {
+                if (!_isActive || _dialog == null) return false;
+                
+                // DialogBehaviorがアタッチされているかチェック
+                var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(_dialog);
+                var dialogBehavior = behaviors.OfType<DialogBehavior>().FirstOrDefault();
+                
+                if (dialogBehavior != null)
+                {
+                    return !dialogBehavior.IsClosed;
+                }
+                
+                // ビヘイビアがない場合は通常のロジック
+                return _dialog.IsLoaded;
+            }
+        }
 
         public event EventHandler<DialogClosedEventArgs>? Closed;
 
-        public DialogHandle(object viewModel, DialogBase dialog)
+        public DialogHandle(object viewModel, Window dialog)
         {
             ViewModel = viewModel;
             _dialog = dialog;
@@ -257,7 +299,30 @@ namespace WpfDialogSampleApp.Services
         {
             if (IsActive)
             {
-                _dialog.CloseDialog(result);
+                // DialogBehaviorがアタッチされているかチェック
+                var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(_dialog);
+                var dialogBehavior = behaviors.OfType<DialogBehavior>().FirstOrDefault();
+                
+                if (dialogBehavior != null)
+                {
+                    dialogBehavior.CloseDialog(result);
+                }
+                else
+                {
+                    // ビヘイビアがない場合は直接閉じる
+                    try
+                    {
+                        if (result.HasValue)
+                        {
+                            _dialog.DialogResult = result;
+                        }
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // 非モーダルダイアログの場合は無視
+                    }
+                    _dialog.Close();
+                }
             }
         }
     }

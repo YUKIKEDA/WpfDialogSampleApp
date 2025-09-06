@@ -1,4 +1,4 @@
-using WpfDialogSampleApp.Views;
+using System.Windows;
 
 namespace WpfDialogSampleApp.Services
 {
@@ -14,7 +14,7 @@ namespace WpfDialogSampleApp.Services
         /// <typeparam name="TView">Viewの型</typeparam>
         void RegisterDialog<TViewModel, TView>()
             where TViewModel : class
-            where TView : DialogBase;
+            where TView : Window, new();
 
         /// <summary>
         /// モーダルダイアログを表示
@@ -32,13 +32,6 @@ namespace WpfDialogSampleApp.Services
         /// <returns>ダイアログのライフサイクル管理オブジェクト</returns>
         IDialogHandle Show<TViewModel>(TViewModel viewModel) where TViewModel : class;
 
-        /// <summary>
-        /// 非同期でモーダルダイアログを表示
-        /// </summary>
-        /// <typeparam name="TViewModel">ViewModelの型</typeparam>
-        /// <param name="viewModel">ViewModel インスタンス</param>
-        /// <returns>ダイアログの結果</returns>
-        Task<bool?> ShowModalAsync<TViewModel>(TViewModel viewModel) where TViewModel : class;
 
         /// <summary>
         /// 型安全なダイアログファクトリー

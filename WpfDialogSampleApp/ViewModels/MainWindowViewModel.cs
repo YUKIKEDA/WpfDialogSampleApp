@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WpfDialogSampleApp.Services;
+using WpfDialogSampleApp.Views;
 
 namespace WpfDialogSampleApp.ViewModels
 {
@@ -19,9 +20,16 @@ namespace WpfDialogSampleApp.ViewModels
             _dialogService = dialogService;
         }
 
-        // デフォルトコンストラクターも提供（デザイナー対応）
-        public MainWindowViewModel() : this(ServiceLocator.TryGetService<IDialogService>() ?? new DialogService())
+        // デザイナー用デフォルトコンストラクター
+        public MainWindowViewModel() : this(CreateDefaultDialogService())
         {
+        }
+
+        private static IDialogService CreateDefaultDialogService()
+        {
+            var dialogService = new DialogService();
+            dialogService.RegisterDialog<UserInfoDialogViewModel, UserInfoDialog>();
+            return dialogService;
         }
 
         [RelayCommand]
@@ -43,17 +51,17 @@ namespace WpfDialogSampleApp.ViewModels
         }
 
         [RelayCommand]
-        private async Task ShowUserInfoDialogModalAsync()
+        private void ShowUserInfoDialogModal()
         {
-            // 非同期モーダルダイアログの例
+            // シンプルなモーダルダイアログ
             var viewModel = new UserInfoDialogViewModel();
-            viewModel.UserInfo.Name = "サンプル"; // 初期設定
+            viewModel.UserInfo.Name = "モーダル"; // 初期設定
             
-            var result = await _dialogService.ShowModalAsync(viewModel);
+            var result = _dialogService.ShowModal(viewModel);
 
-            if (result == true)
+            if (result == true && viewModel.IsValid)
             {
-                _dialogService.ShowMessageBox("ユーザー情報が保存されました。", "成功", MessageBoxType.Information);
+                UserInfoDisplay = $"[モーダル] 名前: {viewModel.UserInfo.Name}, メール: {viewModel.UserInfo.Email}, 年齢: {viewModel.UserInfo.Age}";
             }
         }
 
