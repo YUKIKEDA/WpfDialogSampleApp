@@ -7,14 +7,18 @@ namespace WpfDialogSampleApp.Views
     /// </summary>
     public partial class UserInfoDialog : Window
     {
+        /// <summary>
+        /// UserInfoDialogの新しいインスタンスを初期化します
+        /// </summary>
         public UserInfoDialog()
         {
             InitializeComponent();
         }
 
         /// <summary>
-        /// ダイアログのビヘイビアを取得（XAMLで定義されたビヘイビア）
+        /// ダイアログのビヘイビアを取得します（XAMLで定義されたビヘイビア）
         /// </summary>
+        /// <returns>ダイアログビヘイビアのインスタンス</returns>
         public Behaviors.DialogBehavior DialogBehavior => (Behaviors.DialogBehavior)((Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(this))[0]);
 
         /// <summary>

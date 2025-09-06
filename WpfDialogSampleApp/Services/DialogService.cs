@@ -8,8 +8,19 @@ namespace WpfDialogSampleApp.Services
     /// </summary>
     public class DialogService : IDialogService
     {
+        /// <summary>
+        /// ViewModelとViewのマッピングを保持する辞書
+        /// </summary>
         private readonly Dictionary<Type, Type> _dialogMappings = new();
+        
+        /// <summary>
+        /// 開いているダイアログの管理用辞書
+        /// </summary>
         private readonly Dictionary<object, DialogHandle> _openDialogs = new();
+        
+        /// <summary>
+        /// DialogServiceの新しいインスタンスを初期化します
+        /// </summary>
         public DialogService()
         {
         }
@@ -125,11 +136,22 @@ namespace WpfDialogSampleApp.Services
             _openDialogs.Clear();
         }
 
+        /// <summary>
+        /// 指定された型のViewModelのインスタンスを作成します
+        /// </summary>
+        /// <typeparam name="TViewModel">ViewModelの型</typeparam>
+        /// <returns>作成されたViewModelのインスタンス</returns>
         private TViewModel CreateViewModel<TViewModel>() where TViewModel : class, new()
         {
             return new TViewModel();
         }
 
+        /// <summary>
+        /// 指定されたViewModelに対応するダイアログウィンドウを作成します
+        /// </summary>
+        /// <typeparam name="TViewModel">ViewModelの型</typeparam>
+        /// <param name="viewModel">ViewModelのインスタンス</param>
+        /// <returns>作成されたダイアログウィンドウ（またはnull）</returns>
         private Window? CreateDialog<TViewModel>(TViewModel viewModel) where TViewModel : class
         {
             if (!_dialogMappings.TryGetValue(typeof(TViewModel), out var dialogType))
@@ -145,6 +167,10 @@ namespace WpfDialogSampleApp.Services
             return dialog;
         }
 
+        /// <summary>
+        /// ダイアログに必要なビヘイビアを設定します
+        /// </summary>
+        /// <param name="dialog">設定対象のダイアログ</param>
         private void SetupDialogBehavior(Window dialog)
         {
             // XAMLビヘイビアがアタッチされているかチェック
@@ -159,6 +185,12 @@ namespace WpfDialogSampleApp.Services
             }
         }
 
+        /// <summary>
+        /// ダイアログのDataContextやイベントハンドラーを設定します
+        /// </summary>
+        /// <typeparam name="TViewModel">ViewModelの型</typeparam>
+        /// <param name="dialog">設定対象のダイアログ</param>
+        /// <param name="viewModel">ViewModelのインスタンス</param>
         private void SetupDialog<TViewModel>(Window dialog, TViewModel viewModel) where TViewModel : class
         {
             dialog.DataContext = viewModel;
@@ -205,6 +237,11 @@ namespace WpfDialogSampleApp.Services
 
         #region Helper Methods
 
+        /// <summary>
+        /// カスタムMessageBoxTypeをWPFのMessageBoxButtonに変換します
+        /// </summary>
+        /// <param name="messageType">変換元のメッセージボックスタイプ</param>
+        /// <returns>変換後WPFのMessageBoxButton</returns>
         private static MessageBoxButton ConvertMessageBoxType(MessageBoxType messageType)
         {
             return messageType switch
@@ -214,6 +251,11 @@ namespace WpfDialogSampleApp.Services
             };
         }
 
+        /// <summary>
+        /// カスタムMessageBoxTypeをWPFのMessageBoxImageに変換します
+        /// </summary>
+        /// <param name="messageType">変換元のメッセージボックスタイプ</param>
+        /// <returns>変換後WPFのMessageBoxImage</returns>
         private static MessageBoxImage ConvertMessageBoxImage(MessageBoxType messageType)
         {
             return messageType switch
@@ -226,6 +268,11 @@ namespace WpfDialogSampleApp.Services
             };
         }
 
+        /// <summary>
+        /// WPFのMessageBoxResultをカスタムMessageBoxResultに変換します
+        /// </summary>
+        /// <param name="result">変換元のWPF MessageBoxResult</param>
+        /// <returns>変換後のカスタムMessageBoxResult</returns>
         private static MessageBoxResult ConvertMessageBoxResult(System.Windows.MessageBoxResult result)
         {
             return result switch
@@ -246,9 +293,19 @@ namespace WpfDialogSampleApp.Services
     /// </summary>
     internal class DialogHandle : IDialogHandle
     {
+        /// <summary>
+        /// 管理対象のダイアログウィンドウ
+        /// </summary>
         private readonly Window _dialog;
+        
+        /// <summary>
+        /// ダイアログがアクティブかどうかの内部状態
+        /// </summary>
         private bool _isActive = true;
 
+        /// <summary>
+        /// ダイアログのViewModelを取得します
+        /// </summary>
         public object ViewModel { get; }
         public bool IsActive 
         { 
@@ -272,6 +329,11 @@ namespace WpfDialogSampleApp.Services
 
         public event EventHandler<DialogClosedEventArgs>? Closed;
 
+        /// <summary>
+        /// DialogHandleの新しいインスタンスを初期化します
+        /// </summary>
+        /// <param name="viewModel">ViewModelのインスタンス</param>
+        /// <param name="dialog">ダイアログウィンドウ</param>
         public DialogHandle(object viewModel, Window dialog)
         {
             ViewModel = viewModel;
@@ -281,6 +343,11 @@ namespace WpfDialogSampleApp.Services
             _dialog.Closed += OnDialogClosed;
         }
 
+        /// <summary>
+        /// ダイアログが閉じられた時のイベントハンドラー
+        /// </summary>
+        /// <param name="sender">イベント送信者</param>
+        /// <param name="e">イベント引数</param>
         private void OnDialogClosed(object? sender, EventArgs e)
         {
             _isActive = false;

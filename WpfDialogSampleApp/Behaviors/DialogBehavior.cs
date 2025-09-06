@@ -78,6 +78,9 @@ namespace WpfDialogSampleApp.Behaviors
             AssociatedObject.Close();
         }
 
+        /// <summary>
+        /// ダイアログの共通設定を適用します
+        /// </summary>
         private void ApplyDialogSettings()
         {
             if (AssociatedObject == null) return;
@@ -90,6 +93,11 @@ namespace WpfDialogSampleApp.Behaviors
             AssociatedObject.Background = System.Windows.Media.Brushes.Transparent;
         }
 
+        /// <summary>
+        /// ダイアログが読み込まれた時の処理
+        /// </summary>
+        /// <param name="sender">イベント送信者</param>
+        /// <param name="e">ルーティングイベント引数</param>
         private void OnDialogLoaded(object sender, RoutedEventArgs e)
         {
             if (_isLoaded || AssociatedObject == null) return;
@@ -103,6 +111,11 @@ namespace WpfDialogSampleApp.Behaviors
             }
         }
 
+        /// <summary>
+        /// ダイアログが閉じられた時の処理
+        /// </summary>
+        /// <param name="sender">イベント送信者</param>
+        /// <param name="e">イベント引数</param>
         private void OnDialogClosed(object? sender, EventArgs e)
         {
             IsClosed = true;
@@ -115,18 +128,31 @@ namespace WpfDialogSampleApp.Behaviors
             }
         }
 
+        /// <summary>
+        /// 親ウィンドウの位置が変更された時の処理
+        /// </summary>
+        /// <param name="sender">イベント送信者</param>
+        /// <param name="e">イベント引数</param>
         private void OnOwnerLocationChanged(object? sender, EventArgs e)
         {
             // 親ウィンドウが移動したときにダイアログを中央に再配置
             CenterToOwner();
         }
 
+        /// <summary>
+        /// 親ウィンドウのサイズが変更された時の処理
+        /// </summary>
+        /// <param name="sender">イベント送信者</param>
+        /// <param name="e">サイズ変更イベント引数</param>
         private void OnOwnerSizeChanged(object sender, SizeChangedEventArgs e)
         {
             // 親ウィンドウのサイズが変更されたときにダイアログを中央に再配置
             CenterToOwner();
         }
 
+        /// <summary>
+        /// ダイアログを親ウィンドウの中央に配置します
+        /// </summary>
         private void CenterToOwner()
         {
             if (AssociatedObject?.Owner != null && AssociatedObject.IsLoaded)

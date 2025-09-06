@@ -8,6 +8,9 @@ namespace WpfDialogSampleApp
     /// </summary>
     public partial class MainWindow : Window
     {
+        /// <summary>
+        /// MainWindowの新しいインスタンスを初期化します
+        /// </summary>
         public MainWindow()
         {
             InitializeComponent();

@@ -106,9 +106,21 @@ namespace WpfDialogSampleApp.Services
     /// </summary>
     public class DialogClosedEventArgs : EventArgs
     {
+        /// <summary>
+        /// ダイアログの結果を取得します
+        /// </summary>
         public bool? Result { get; }
+        
+        /// <summary>
+        /// ダイアログのViewModelを取得します
+        /// </summary>
         public object ViewModel { get; }
 
+        /// <summary>
+        /// DialogClosedEventArgsの新しいインスタンスを初期化します
+        /// </summary>
+        /// <param name="result">ダイアログの結果</param>
+        /// <param name="viewModel">ダイアログのViewModel</param>
         public DialogClosedEventArgs(bool? result, object viewModel)
         {
             Result = result;
