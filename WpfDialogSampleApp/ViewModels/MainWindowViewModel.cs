@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Windows;
-using WpfDialogSampleApp.Views;
+using WpfDialogSampleApp.Services;
 
 namespace WpfDialogSampleApp.ViewModels
 {
@@ -13,56 +12,43 @@ namespace WpfDialogSampleApp.ViewModels
         [ObservableProperty]
         private string _userInfoDisplay = "ユーザー情報がまだ入力されていません。";
 
-        private UserInfoDialog? _currentDialog;
+        private readonly IDialogService _dialogService;
+
+        public MainWindowViewModel()
+        {
+            _dialogService = new DialogService();
+        }
 
         [RelayCommand]
         private void ShowUserInfoDialog()
         {
-            // 既にダイアログが開いている場合は何もしない
-            if (_currentDialog != null)
-                return;
-
-            _currentDialog = new UserInfoDialog();
             var viewModel = new UserInfoDialogViewModel();
-            _currentDialog.DataContext = viewModel;
             
-            // 親ウィンドウを設定して中央配置を確実にする
-            _currentDialog.Owner = Application.Current.MainWindow;
-            _currentDialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            // 非モーダルで表示（既に開いている場合は何もしない）
+            _dialogService.Show(viewModel);
             
-            // ダイアログが閉じられたときの処理
-            _currentDialog.Closed += (sender, e) =>
+            // ダイアログが閉じられた時の処理（PropertyChangedでDialogResultを監視）
+            viewModel.PropertyChanged += (s, e) =>
             {
-                if (viewModel.IsValid && sender is UserInfoDialog dialog && dialog.DialogResult == true)
+                if (e.PropertyName == nameof(viewModel.DialogResult) && viewModel.DialogResult == true && viewModel.IsValid)
                 {
                     UserInfoDisplay = $"名前: {viewModel.UserInfo.Name}, メール: {viewModel.UserInfo.Email}, 年齢: {viewModel.UserInfo.Age}";
                 }
-                _currentDialog = null;
             };
-
-            viewModel.IsDialogOpen = true;
-            
-            // モーダレス（非モーダル）で表示
-            _currentDialog.Show();
         }
 
         [RelayCommand]
         private void ShowMessageDialog()
         {
-            MessageBox.Show("これはシンプルなメッセージダイアログです。", "メッセージ", 
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            _dialogService.ShowMessageBox("これはシンプルなメッセージダイアログです。", "メッセージ", MessageBoxType.Information);
         }
 
         [RelayCommand]
         private void ShowConfirmationDialog()
         {
-            var result = MessageBox.Show("この操作を実行しますか？", "確認", 
-                MessageBoxButton.YesNo, MessageBoxImage.Question);
-            
-            if (result == MessageBoxResult.Yes)
+            if (_dialogService.ShowConfirmation("この操作を実行しますか？", "確認"))
             {
-                MessageBox.Show("操作が実行されました。", "結果", 
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                _dialogService.ShowMessageBox("操作が実行されました。", "結果", MessageBoxType.Information);
             }
         }
     }

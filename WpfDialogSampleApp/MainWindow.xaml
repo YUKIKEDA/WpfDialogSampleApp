@@ -10,65 +10,73 @@
     Height="400"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
-    
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- ヘッダー -->
-        <TextBlock Grid.Row="0" 
-                   Text="{Binding WelcomeMessage}" 
-                   FontSize="18" 
-                   FontWeight="Bold" 
-                   HorizontalAlignment="Center"
-                   Margin="0,0,0,30"/>
+        <!--  ヘッダー  -->
+        <TextBlock
+            Grid.Row="0"
+            Margin="0,0,0,30"
+            HorizontalAlignment="Center"
+            FontSize="18"
+            FontWeight="Bold"
+            Text="{Binding WelcomeMessage}" />
 
-        <!-- メインコンテンツ -->
+        <!--  メインコンテンツ  -->
         <StackPanel Grid.Row="1">
-            <TextBlock Text="以下のボタンをクリックしてダイアログを表示できます：" 
-                       FontSize="14" 
-                       Margin="0,0,0,20"/>
-            
+            <TextBlock
+                Margin="0,0,0,20"
+                FontSize="14"
+                Text="以下のボタンをクリックしてダイアログを表示できます：" />
+
             <StackPanel Margin="0,20,0,0">
-                <Button Content="ユーザー情報入力ダイアログ" 
-                        Command="{Binding ShowUserInfoDialogCommand}"
-                        Padding="20,10"
-                        FontSize="14"
-                        Background="#FF0078D4"
-                        Foreground="White"
-                        Margin="0,0,0,15"/>
-                
-                <Button Content="メッセージダイアログ" 
-                        Command="{Binding ShowMessageDialogCommand}"
-                        Padding="20,10"
-                        FontSize="14"
-                        Margin="0,0,0,15"/>
-                
-                <Button Content="確認ダイアログ" 
-                        Command="{Binding ShowConfirmationDialogCommand}"
-                        Padding="20,10"
-                        FontSize="14"/>
+                <Button
+                    Margin="0,0,0,15"
+                    Padding="20,10"
+                    Background="#FF0078D4"
+                    Command="{Binding ShowUserInfoDialogCommand}"
+                    Content="ユーザー情報入力ダイアログ"
+                    FontSize="14"
+                    Foreground="White" />
+
+                <Button
+                    Margin="0,0,0,15"
+                    Padding="20,10"
+                    Command="{Binding ShowMessageDialogCommand}"
+                    Content="メッセージダイアログ"
+                    FontSize="14" />
+
+                <Button
+                    Padding="20,10"
+                    Command="{Binding ShowConfirmationDialogCommand}"
+                    Content="確認ダイアログ"
+                    FontSize="14" />
             </StackPanel>
 
-            <Border Background="#F0F0F0" 
-                    Padding="15" 
-                    CornerRadius="5" 
-                    Margin="0,20,0,0">
-                <TextBlock Text="{Binding UserInfoDisplay}" 
-                           FontSize="12" 
-                           TextWrapping="Wrap"/>
+            <Border
+                Margin="0,20,0,0"
+                Padding="15"
+                Background="#F0F0F0"
+                CornerRadius="5">
+                <TextBlock
+                    FontSize="12"
+                    Text="{Binding UserInfoDisplay}"
+                    TextWrapping="Wrap" />
             </Border>
         </StackPanel>
 
-        <!-- フッター -->
-        <TextBlock Grid.Row="2" 
-                   Text="MVVMパターンを使用したWPFダイアログサンプル" 
-                   FontSize="10" 
-                   Foreground="Gray" 
-                   HorizontalAlignment="Center"
-                   Margin="0,20,0,0"/>
+        <!--  フッター  -->
+        <TextBlock
+            Grid.Row="2"
+            Margin="0,20,0,0"
+            HorizontalAlignment="Center"
+            FontSize="10"
+            Foreground="Gray"
+            Text="MVVMパターンを使用したWPFダイアログサンプル" />
     </Grid>
 </Window>
