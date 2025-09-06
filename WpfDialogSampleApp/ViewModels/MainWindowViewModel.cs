@@ -13,20 +13,37 @@ namespace WpfDialogSampleApp.ViewModels
         [ObservableProperty]
         private string _userInfoDisplay = "ユーザー情報がまだ入力されていません。";
 
+        private UserInfoDialog? _currentDialog;
+
         [RelayCommand]
         private void ShowUserInfoDialog()
         {
-            var dialog = new UserInfoDialog();
+            // 既にダイアログが開いている場合は何もしない
+            if (_currentDialog != null)
+                return;
+
+            _currentDialog = new UserInfoDialog();
             var viewModel = new UserInfoDialogViewModel();
-            dialog.DataContext = viewModel;
+            _currentDialog.DataContext = viewModel;
             
+            // 親ウィンドウを設定して中央配置を確実にする
+            _currentDialog.Owner = Application.Current.MainWindow;
+            _currentDialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            
+            // ダイアログが閉じられたときの処理
+            _currentDialog.Closed += (sender, e) =>
+            {
+                if (viewModel.IsValid && sender is UserInfoDialog dialog && dialog.DialogResult == true)
+                {
+                    UserInfoDisplay = $"名前: {viewModel.UserInfo.Name}, メール: {viewModel.UserInfo.Email}, 年齢: {viewModel.UserInfo.Age}";
+                }
+                _currentDialog = null;
+            };
+
             viewModel.IsDialogOpen = true;
             
-            if (dialog.ShowDialog() == true)
-            {
-                // ダイアログが正常に閉じられた場合の処理
-                UserInfoDisplay = $"名前: {viewModel.UserInfo.Name}, メール: {viewModel.UserInfo.Email}, 年齢: {viewModel.UserInfo.Age}";
-            }
+            // モーダレス（非モーダル）で表示
+            _currentDialog.Show();
         }
 
         [RelayCommand]

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using WpfDialogSampleApp.Models;
 
@@ -43,16 +44,26 @@ namespace WpfDialogSampleApp.ViewModels
         {
             if (IsValid)
             {
-                IsDialogOpen = false;
-                MessageBox.Show($"ユーザー情報が保存されました:\n名前: {UserInfo.Name}\nメール: {UserInfo.Email}\n年齢: {UserInfo.Age}", 
-                    "保存完了", MessageBoxButton.OK, MessageBoxImage.Information);
+                // ダイアログの結果をtrueに設定して閉じる
+                var window = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.DataContext == this);
+                if (window != null)
+                {
+                    window.DialogResult = true;
+                    window.Close();
+                }
             }
         }
 
         [RelayCommand]
         private void Cancel()
         {
-            IsDialogOpen = false;
+            // ダイアログの結果をfalseに設定して閉じる
+            var window = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.DataContext == this);
+            if (window != null)
+            {
+                window.DialogResult = false;
+                window.Close();
+            }
         }
 
         [RelayCommand]
