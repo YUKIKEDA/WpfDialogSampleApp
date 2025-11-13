@@ -15,16 +15,53 @@
 
     <Grid>
         <!-- メインコンテンツ -->
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="500">
             <TextBlock Text="WPF ダイアログサンプルアプリケーション" 
                        FontSize="18" 
                        FontWeight="Bold" 
                        HorizontalAlignment="Center" 
-                       Margin="0,0,0,20"/>
+                       Margin="0,0,0,30"/>
+            
+            <!-- ダイアログ実行ボタン -->
             <Button Content="ユーザー情報ダイアログを開く" 
-                    Click="OpenUserInfoDialog" 
+                    Command="{Binding ShowUserInfoDialogCommand}"
                     Padding="20,10" 
-                    MinWidth="200"/>
+                    MinWidth="200"
+                    Margin="0,0,0,30"/>
+            
+            <!-- 結果表示エリア -->
+            <Border BorderBrush="LightGray" 
+                    BorderThickness="1" 
+                    Padding="20" 
+                    CornerRadius="5"
+                    Background="AliceBlue">
+                <StackPanel>
+                    <TextBlock Text="ダイアログ実行結果:" 
+                               FontWeight="Bold" 
+                               Margin="0,0,0,10"/>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="結果:" Margin="0,0,10,5"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding LastResult.Value}" Margin="0,0,0,5"/>
+                        
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="名前:" Margin="0,0,10,5"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LastName.Value}" Margin="0,0,0,5"/>
+                        
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="メール:" Margin="0,0,10,0"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding LastEmail.Value}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
         </StackPanel>
         
         <!-- ダイアログオーバーレイ -->

@@ -1,62 +1,59 @@
+using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using WpfDialogSampleApp.Core.Dialogs.Interfaces;
 
 namespace WpfDialogSampleApp.Dialogs.UserInfoDialog
 {
-    public class UserInfoDialogViewModel : INotifyPropertyChanged, IDialogContentViewModel<UserInfoDialogInput, UserInfoDialogOutput>
+    public class UserInfoDialogViewModel : INotifyPropertyChanged, IDialogContentViewModel<UserInfoDialogInput, UserInfoDialogOutput>, IDisposable
     {
         private TaskCompletionSource<UserInfoDialogOutput>? _taskCompletionSource;
-        private string _name = string.Empty;
-        private string _email = string.Empty;
+        private readonly CompositeDisposable _disposables = new();
 
-        public string Name
-        {
-            get => _name;
-            set
-            {
-                _name = value;
-                OnPropertyChanged();
-                ((RelayCommand)OkCommand).RaiseCanExecuteChanged();
-            }
-        }
-
-        public string Email
-        {
-            get => _email;
-            set
-            {
-                _email = value;
-                OnPropertyChanged();
-                ((RelayCommand)OkCommand).RaiseCanExecuteChanged();
-            }
-        }
-
-        public ICommand OkCommand { get; }
-        public ICommand CancelCommand { get; }
+        public ReactiveProperty<string> Name { get; }
+        public ReactiveProperty<string> Email { get; }
+        public ReactiveCommand OkCommand { get; }
+        public ReactiveCommand CancelCommand { get; }
 
         public UserInfoDialogViewModel()
         {
-            OkCommand = new RelayCommand(ExecuteOk, CanExecuteOk);
-            CancelCommand = new RelayCommand(ExecuteCancel);
+            // ReactivePropertyの初期化
+            Name = new ReactiveProperty<string>(string.Empty)
+                .AddTo(_disposables);
+
+            Email = new ReactiveProperty<string>(string.Empty)
+                .AddTo(_disposables);
+
+            // OKコマンド - 名前とメールが両方入力されている場合のみ有効
+            var canExecuteOk = Name
+                .CombineLatest(Email, (name, email) => 
+                    !string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(email))
+                .ToReactiveProperty()
+                .AddTo(_disposables);
+
+            OkCommand = canExecuteOk
+                .ToReactiveCommand()
+                .WithSubscribe(ExecuteOk)
+                .AddTo(_disposables);
+
+            // キャンセルコマンド - 常に実行可能
+            CancelCommand = new ReactiveCommand()
+                .WithSubscribe(ExecuteCancel)
+                .AddTo(_disposables);
         }
 
         public void Initialize(UserInfoDialogInput parameters, TaskCompletionSource<UserInfoDialogOutput> taskCompletionSource)
         {
-            Name = parameters.InitialName;
-            Email = parameters.InitialEmail;
+            Name.Value = parameters.InitialName;
+            Email.Value = parameters.InitialEmail;
             _taskCompletionSource = taskCompletionSource;
         }
 
         private void ExecuteOk()
         {
-            _taskCompletionSource?.SetResult(new UserInfoDialogOutput(UserInfoDialogResult.Ok, Name, Email));
-        }
-
-        private bool CanExecuteOk()
-        {
-            return !string.IsNullOrWhiteSpace(Name) && !string.IsNullOrWhiteSpace(Email);
+            _taskCompletionSource?.SetResult(new UserInfoDialogOutput(UserInfoDialogResult.Ok, Name.Value, Email.Value));
         }
 
         private void ExecuteCancel()
@@ -64,40 +61,15 @@ namespace WpfDialogSampleApp.Dialogs.UserInfoDialog
             _taskCompletionSource?.SetResult(new UserInfoDialogOutput(UserInfoDialogResult.Cancel));
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        public event PropertyChangedEventHandler? PropertyChanged
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-
-    public class RelayCommand : ICommand
-    {
-        private readonly Action _execute;
-        private readonly Func<bool>? _canExecute;
-
-        public RelayCommand(Action execute, Func<bool>? canExecute = null)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
+            add { }
+            remove { }
         }
 
-        public event EventHandler? CanExecuteChanged;
-
-        public bool CanExecute(object? parameter)
+        public void Dispose()
         {
-            return _canExecute?.Invoke() ?? true;
-        }
-
-        public void Execute(object? parameter)
-        {
-            _execute();
-        }
-
-        public void RaiseCanExecuteChanged()
-        {
-            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+            _disposables.Dispose();
         }
     }
 }

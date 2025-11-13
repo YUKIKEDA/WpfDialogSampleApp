@@ -18,6 +18,11 @@ namespace WpfDialogSampleApp
         private static IDialogService? _dialogService;
 
         /// <summary>
+        /// メインViewModelの参照（Dispose用）
+        /// </summary>
+        private static MainWindowViewModel? _mainViewModel;
+
+        /// <summary>
         /// アプリケーションの開始時に呼び出されるメソッド
         /// </summary>
         /// <param name="e">スタートアップイベント引数</param>
@@ -32,11 +37,11 @@ namespace WpfDialogSampleApp
 
             // メインウィンドウの作成
             var mainWindow = new MainWindow();
-            var mainViewModel = new MainWindowViewModel(_dialogService)
+            _mainViewModel = new MainWindowViewModel(_dialogService)
             {
                 DialogViewModel = dialogViewModel
             };
-            mainWindow.DataContext = mainViewModel;
+            mainWindow.DataContext = _mainViewModel;
 
             MainWindow = mainWindow;
             mainWindow.Show();
@@ -49,7 +54,7 @@ namespace WpfDialogSampleApp
         protected override void OnExit(ExitEventArgs e)
         {
             // リソースのクリーンアップ
-            // 必要に応じてダイアログサービスのクリーンアップを実装
+            _mainViewModel?.Dispose();
             base.OnExit(e);
         }
 
