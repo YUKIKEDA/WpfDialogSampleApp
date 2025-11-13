@@ -8,6 +8,8 @@
     xmlns:dialogs="clr-namespace:WpfDialogSampleApp.Core.Dialogs.Views;assembly=WpfDialogSampleApp.Core"
     xmlns:userInfoDialog="clr-namespace:WpfDialogSampleApp.Dialogs.UserInfoDialog"
     xmlns:confirmDialog="clr-namespace:WpfDialogSampleApp.Dialogs.ConfirmDialog"
+    xmlns:checkboxConfirmDialog="clr-namespace:WpfDialogSampleApp.Dialogs.CheckboxConfirmDialog"
+    xmlns:progressDialog="clr-namespace:WpfDialogSampleApp.Dialogs.ProgressDialog"
     Title="WPF MVVM ダイアログサンプル"
     Width="600"
     Height="400"
@@ -24,11 +26,24 @@
                        Margin="0,0,0,30"/>
             
             <!-- ダイアログ実行ボタン -->
-            <Button Content="ユーザー情報ダイアログを開く" 
-                    Command="{Binding ShowUserInfoDialogCommand}"
-                    Padding="20,10" 
-                    MinWidth="200"
-                    Margin="0,0,0,30"/>
+            <StackPanel Orientation="Vertical" Margin="0,0,0,30">
+                <Button Content="ユーザー情報ダイアログを開く" 
+                        Command="{Binding ShowUserInfoDialogCommand}"
+                        Padding="15,8" 
+                        MinWidth="250"
+                        Margin="0,0,0,10"/>
+                
+                <Button Content="チェックボックス付き確認ダイアログを開く" 
+                        Command="{Binding ShowCheckboxConfirmDialogCommand}"
+                        Padding="15,8" 
+                        MinWidth="250"
+                        Margin="0,0,0,10"/>
+                
+                <Button Content="進捗ダイアログを開く" 
+                        Command="{Binding ShowProgressDialogCommand}"
+                        Padding="15,8" 
+                        MinWidth="250"/>
+            </StackPanel>
             
             <!-- 結果表示エリア -->
             <Border BorderBrush="LightGray" 
@@ -74,6 +89,12 @@
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type confirmDialog:ConfirmDialogViewModel}">
                         <confirmDialog:ConfirmDialogView/>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type checkboxConfirmDialog:CheckboxConfirmDialogViewModel}">
+                        <checkboxConfirmDialog:CheckboxConfirmDialogView/>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type progressDialog:ProgressDialogViewModel}">
+                        <progressDialog:ProgressDialogView/>
                     </DataTemplate>
                 </ResourceDictionary>
             </dialogs:DialogView.Resources>

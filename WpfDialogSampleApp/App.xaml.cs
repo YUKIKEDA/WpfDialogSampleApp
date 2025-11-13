@@ -4,6 +4,8 @@ using WpfDialogSampleApp.Core.Dialogs.ViewModels;
 using WpfDialogSampleApp.ViewModels;
 using WpfDialogSampleApp.Dialogs.UserInfoDialog;
 using WpfDialogSampleApp.Dialogs.ConfirmDialog;
+using WpfDialogSampleApp.Dialogs.CheckboxConfirmDialog;
+using WpfDialogSampleApp.Dialogs.ProgressDialog;
 
 namespace WpfDialogSampleApp
 {
@@ -38,6 +40,8 @@ namespace WpfDialogSampleApp
             // ダイアログの登録
             _dialogService.RegisterDialog<UserInfoDialogView, UserInfoDialogViewModel>();
             _dialogService.RegisterDialog<ConfirmDialogView, ConfirmDialogViewModel>();
+            _dialogService.RegisterDialog<CheckboxConfirmDialogView, CheckboxConfirmDialogViewModel>();
+            _dialogService.RegisterDialog<ProgressDialogView, ProgressDialogViewModel>();
             
             // UserInfoDialogViewModelにDialogServiceを渡すためのファクトリ登録
             _dialogService.RegisterViewModelFactory<UserInfoDialogViewModel>(() => new UserInfoDialogViewModel(_dialogService));
