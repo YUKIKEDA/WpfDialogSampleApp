@@ -1,69 +1,85 @@
-<UserControl x:Class="WpfDialogSampleApp.Dialogs.UserInfoDialog.UserInfoDialogView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="400">
-    <Grid>
+<UserControl
+    x:Class="WpfDialogSampleApp.Dialogs.UserInfoDialog.UserInfoDialogView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="300"
+    d:DesignWidth="400"
+    mc:Ignorable="d">
+    <Grid Width="400">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- タイトル -->
-        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" 
-                   Text="ユーザー情報の入力" 
-                   FontSize="16" 
-                   FontWeight="Bold" 
-                   Margin="0,0,0,20" 
-                   HorizontalAlignment="Center"/>
+        <!--  タイトル  -->
+        <TextBlock
+            Grid.Row="0"
+            Grid.ColumnSpan="2"
+            Margin="0,0,0,20"
+            HorizontalAlignment="Center"
+            FontSize="16"
+            FontWeight="Bold"
+            Text="ユーザー情報の入力" />
 
-        <!-- 名前 -->
-        <TextBlock Grid.Row="1" Grid.Column="0" 
-                   Text="名前:" 
-                   VerticalAlignment="Center" 
-                   Margin="0,0,10,10"/>
-        <TextBox Grid.Row="1" Grid.Column="1" 
-                 Text="{Binding Name.Value, UpdateSourceTrigger=PropertyChanged}" 
-                 Margin="0,0,0,10" 
-                 Padding="5"/>
+        <!--  名前  -->
+        <TextBlock
+            Grid.Row="1"
+            Grid.Column="0"
+            Margin="0,0,10,10"
+            VerticalAlignment="Center"
+            Text="名前:" />
+        <TextBox
+            Grid.Row="1"
+            Grid.Column="1"
+            Margin="0,0,0,10"
+            Padding="5"
+            Text="{Binding Name.Value, UpdateSourceTrigger=PropertyChanged}" />
 
-        <!-- メールアドレス -->
-        <TextBlock Grid.Row="2" Grid.Column="0" 
-                   Text="メール:" 
-                   VerticalAlignment="Center" 
-                   Margin="0,0,10,10"/>
-        <TextBox Grid.Row="2" Grid.Column="1" 
-                 Text="{Binding Email.Value, UpdateSourceTrigger=PropertyChanged}" 
-                 Margin="0,0,0,10" 
-                 Padding="5"/>
+        <!--  メールアドレス  -->
+        <TextBlock
+            Grid.Row="2"
+            Grid.Column="0"
+            Margin="0,0,10,10"
+            VerticalAlignment="Center"
+            Text="メール:" />
+        <TextBox
+            Grid.Row="2"
+            Grid.Column="1"
+            Margin="0,0,0,10"
+            Padding="5"
+            Text="{Binding Email.Value, UpdateSourceTrigger=PropertyChanged}" />
 
-        <!-- ボタン -->
-        <StackPanel Grid.Row="6" Grid.ColumnSpan="2" 
-                    Orientation="Horizontal" 
-                    HorizontalAlignment="Right" 
-                    Margin="0,20,0,0">
-            <Button Content="OK" 
-                    Command="{Binding OkCommand}" 
-                    IsDefault="True"
-                    MinWidth="75" 
-                    Margin="0,0,10,0" 
-                    Padding="10,5"/>
-            <Button Content="キャンセル" 
-                    Command="{Binding CancelCommand}" 
-                    IsCancel="True"
-                    MinWidth="75" 
-                    Padding="10,5"/>
+        <!--  ボタン  -->
+        <StackPanel
+            Grid.Row="6"
+            Grid.ColumnSpan="2"
+            Margin="0,20,0,0"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal">
+            <Button
+                MinWidth="75"
+                Margin="0,0,10,0"
+                Padding="10,5"
+                Command="{Binding OkCommand}"
+                Content="OK"
+                IsDefault="True" />
+            <Button
+                MinWidth="75"
+                Padding="10,5"
+                Command="{Binding CancelCommand}"
+                Content="キャンセル"
+                IsCancel="True" />
         </StackPanel>
     </Grid>
 </UserControl>
