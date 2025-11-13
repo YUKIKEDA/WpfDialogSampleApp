@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using WpfDialogSampleApp.ViewModels;
 
 namespace WpfDialogSampleApp
 {
@@ -13,6 +14,14 @@ namespace WpfDialogSampleApp
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private async void OpenUserInfoDialog(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel viewModel)
+            {
+                await viewModel.ShowUserInfoDialogAsync();
+            }
         }
     }
 }

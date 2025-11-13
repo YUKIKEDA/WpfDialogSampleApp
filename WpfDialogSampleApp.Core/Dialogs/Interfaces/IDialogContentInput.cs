@@ -1,6 +1,6 @@
 ﻿namespace WpfDialogSampleApp.Core.Dialogs.Interfaces
 {
-    internal interface IDialogContentInput
+    public interface IDialogContentInput
     {
     }
 }

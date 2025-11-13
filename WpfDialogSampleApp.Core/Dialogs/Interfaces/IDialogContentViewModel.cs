@@ -1,6 +1,6 @@
 ﻿namespace WpfDialogSampleApp.Core.Dialogs.Interfaces
 {
-    internal interface IDialogContentViewModel<TInput, TOutput> 
+    public interface IDialogContentViewModel<TInput, TOutput> 
         where TInput : IDialogContentInput 
         where TOutput : IDialogContentOutput
     {

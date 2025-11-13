@@ -1,7 +1,8 @@
 ﻿using System.Windows;
-using WpfDialogSampleApp.Services;
+using WpfDialogSampleApp.Core.Dialogs.Services;
+using WpfDialogSampleApp.Core.Dialogs.ViewModels;
 using WpfDialogSampleApp.ViewModels;
-using WpfDialogSampleApp.Views;
+using WpfDialogSampleApp.Dialogs.UserInfoDialog;
 
 namespace WpfDialogSampleApp
 {
@@ -25,12 +26,16 @@ namespace WpfDialogSampleApp
             base.OnStartup(e);
 
             // シンプルなサービス設定
-            _dialogService = new DialogService();
-            _dialogService.RegisterDialog<UserInfoDialogViewModel, UserInfoDialog>();
+            var dialogViewModel = new DialogViewModel();
+            _dialogService = new DialogService(dialogViewModel);
+            _dialogService.RegisterDialog<UserInfoDialogView, UserInfoDialogViewModel>();
 
             // メインウィンドウの作成
             var mainWindow = new MainWindow();
-            var mainViewModel = new MainWindowViewModel(_dialogService);
+            var mainViewModel = new MainWindowViewModel(_dialogService)
+            {
+                DialogViewModel = dialogViewModel
+            };
             mainWindow.DataContext = mainViewModel;
 
             MainWindow = mainWindow;
@@ -44,7 +49,7 @@ namespace WpfDialogSampleApp
         protected override void OnExit(ExitEventArgs e)
         {
             // リソースのクリーンアップ
-            _dialogService?.CloseAllDialogs();
+            // 必要に応じてダイアログサービスのクリーンアップを実装
             base.OnExit(e);
         }
 
