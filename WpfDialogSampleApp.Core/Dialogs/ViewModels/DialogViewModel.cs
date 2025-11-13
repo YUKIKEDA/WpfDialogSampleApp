@@ -1,50 +1,71 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using WpfDialogSampleApp.Core.Dialogs.Interfaces;
 
 namespace WpfDialogSampleApp.Core.Dialogs.ViewModels
 {
+    public class DialogInfo
+    {
+        public object ContentViewModel { get; set; } = null!;
+        public TaskCompletionSource<object> TaskCompletionSource { get; set; } = null!;
+        public int ZIndex { get; set; }
+    }
+
     public class DialogViewModel : INotifyPropertyChanged
     {
-        private object? _dialogContentViewModel;
-        private bool _isVisible = false;
+        private readonly object _lockObject = new();
+        private int _nextZIndex = 1000;
 
-        public object? DialogContentViewModel
-        {
-            get => _dialogContentViewModel;
-            set
-            {
-                _dialogContentViewModel = value;
-                OnPropertyChanged();
-            }
-        }
+        public ObservableCollection<DialogInfo> DialogStack { get; } = new();
 
-        public bool IsVisible
-        {
-            get => _isVisible;
-            set
-            {
-                _isVisible = value;
-                OnPropertyChanged();
-            }
-        }
+        public bool IsVisible => DialogStack.Count > 0;
 
         public async Task<TOutput> ShowAsync<TInput, TOutput>(IDialogContentViewModel<TInput, TOutput> dialogContentViewModel, TInput input) 
             where TInput : IDialogContentInput 
             where TOutput : IDialogContentOutput
         {
-            IsVisible = true;
-            DialogContentViewModel = dialogContentViewModel;
-
             var taskCompletionSource = new TaskCompletionSource<TOutput>();
             
+            // ダイアログをスタックに追加
+            var dialogInfo = new DialogInfo
+            {
+                ContentViewModel = dialogContentViewModel,
+                TaskCompletionSource = new TaskCompletionSource<object>(),
+                ZIndex = GetNextZIndex()
+            };
+
+            lock (_lockObject)
+            {
+                DialogStack.Add(dialogInfo);
+            }
+
+            OnPropertyChanged(nameof(IsVisible));
+
+            // ダイアログの初期化
             dialogContentViewModel.Initialize(input, taskCompletionSource);
-            
-            var result = await taskCompletionSource.Task.WaitAsync(CancellationToken.None);
 
-            IsVisible = false;
+            try
+            {
+                // ダイアログの結果を待機
+                var result = await taskCompletionSource.Task.WaitAsync(CancellationToken.None);
 
-            return result;
+                return result;
+            }
+            finally
+            {
+                // ダイアログをスタックから削除
+                lock (_lockObject)
+                {
+                    DialogStack.Remove(dialogInfo);
+                }
+                OnPropertyChanged(nameof(IsVisible));
+            }
+        }
+
+        private int GetNextZIndex()
+        {
+            return Interlocked.Increment(ref _nextZIndex);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

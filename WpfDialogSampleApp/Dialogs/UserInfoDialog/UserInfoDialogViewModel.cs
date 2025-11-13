@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WpfDialogSampleApp.Core.Dialogs.Interfaces;
+using WpfDialogSampleApp.Core.Dialogs.Services;
+using WpfDialogSampleApp.Dialogs.ConfirmDialog;
 
 namespace WpfDialogSampleApp.Dialogs.UserInfoDialog
 {
@@ -11,14 +13,16 @@ namespace WpfDialogSampleApp.Dialogs.UserInfoDialog
     {
         private TaskCompletionSource<UserInfoDialogOutput>? _taskCompletionSource;
         private readonly CompositeDisposable _disposables = new();
+        private readonly IDialogService? _dialogService;
 
         public ReactiveProperty<string> Name { get; }
         public ReactiveProperty<string> Email { get; }
         public ReactiveCommand OkCommand { get; }
         public ReactiveCommand CancelCommand { get; }
 
-        public UserInfoDialogViewModel()
+        public UserInfoDialogViewModel(IDialogService? dialogService = null)
         {
+            _dialogService = dialogService;
             // ReactivePropertyの初期化
             Name = new ReactiveProperty<string>(string.Empty)
                 .AddTo(_disposables);
@@ -51,8 +55,24 @@ namespace WpfDialogSampleApp.Dialogs.UserInfoDialog
             _taskCompletionSource = taskCompletionSource;
         }
 
-        private void ExecuteOk()
+        private async void ExecuteOk()
         {
+            // ネストしたダイアログの例：確認ダイアログを表示
+            if (_dialogService != null)
+            {
+                var confirmResult = await _dialogService.ShowDialogAsync<ConfirmDialogViewModel, ConfirmDialogInput, ConfirmDialogOutput>(
+                    new ConfirmDialogInput(
+                        "確認", 
+                        $"以下の情報で登録しますか？\n\n名前: {Name.Value}\nメール: {Email.Value}",
+                        "登録", 
+                        "キャンセル"));
+
+                if (!confirmResult.IsConfirmed)
+                {
+                    return; // キャンセルされた場合は何もしない
+                }
+            }
+
             _taskCompletionSource?.SetResult(new UserInfoDialogOutput(UserInfoDialogResult.Ok, Name.Value, Email.Value));
         }
 

@@ -15,6 +15,14 @@ namespace WpfDialogSampleApp.Core.Dialogs.Services
             where TViewModel : class;
 
         /// <summary>
+        /// ViewModelのファクトリメソッドを登録します
+        /// </summary>
+        /// <typeparam name="TViewModel">ViewModelの型</typeparam>
+        /// <param name="factory">ViewModelを作成するファクトリメソッド</param>
+        void RegisterViewModelFactory<TViewModel>(Func<TViewModel> factory)
+            where TViewModel : class;
+
+        /// <summary>
         /// 指定されたViewModelでダイアログを表示します
         /// </summary>
         /// <typeparam name="TViewModel">ダイアログのViewModelの型</typeparam>

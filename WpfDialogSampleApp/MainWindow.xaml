@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:dialogs="clr-namespace:WpfDialogSampleApp.Core.Dialogs.Views;assembly=WpfDialogSampleApp.Core"
     xmlns:userInfoDialog="clr-namespace:WpfDialogSampleApp.Dialogs.UserInfoDialog"
+    xmlns:confirmDialog="clr-namespace:WpfDialogSampleApp.Dialogs.ConfirmDialog"
     Title="WPF MVVM ダイアログサンプル"
     Width="600"
     Height="400"
@@ -70,6 +71,9 @@
                 <ResourceDictionary>
                     <DataTemplate DataType="{x:Type userInfoDialog:UserInfoDialogViewModel}">
                         <userInfoDialog:UserInfoDialogView/>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type confirmDialog:ConfirmDialogViewModel}">
+                        <confirmDialog:ConfirmDialogView/>
                     </DataTemplate>
                 </ResourceDictionary>
             </dialogs:DialogView.Resources>

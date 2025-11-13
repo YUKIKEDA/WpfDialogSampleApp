@@ -3,6 +3,7 @@ using WpfDialogSampleApp.Core.Dialogs.Services;
 using WpfDialogSampleApp.Core.Dialogs.ViewModels;
 using WpfDialogSampleApp.ViewModels;
 using WpfDialogSampleApp.Dialogs.UserInfoDialog;
+using WpfDialogSampleApp.Dialogs.ConfirmDialog;
 
 namespace WpfDialogSampleApp
 {
@@ -33,7 +34,13 @@ namespace WpfDialogSampleApp
             // シンプルなサービス設定
             var dialogViewModel = new DialogViewModel();
             _dialogService = new DialogService(dialogViewModel);
+            
+            // ダイアログの登録
             _dialogService.RegisterDialog<UserInfoDialogView, UserInfoDialogViewModel>();
+            _dialogService.RegisterDialog<ConfirmDialogView, ConfirmDialogViewModel>();
+            
+            // UserInfoDialogViewModelにDialogServiceを渡すためのファクトリ登録
+            _dialogService.RegisterViewModelFactory<UserInfoDialogViewModel>(() => new UserInfoDialogViewModel(_dialogService));
 
             // メインウィンドウの作成
             var mainWindow = new MainWindow();

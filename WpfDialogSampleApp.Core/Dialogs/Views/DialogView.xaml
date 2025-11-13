@@ -10,20 +10,48 @@
     </UserControl.Resources>
 
     <Grid Visibility="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
-        <Grid.Background>
-            <SolidColorBrush Color="Black" Opacity="0.5" />
-        </Grid.Background>
-
-        <Border HorizontalAlignment="Center" VerticalAlignment="Center" 
-                Background="White" 
-                BorderBrush="LightGray" 
-                BorderThickness="1" 
-                Padding="20"
-                CornerRadius="8">
-            <Border.Effect>
-                <DropShadowEffect Color="Black" Direction="315" ShadowDepth="5" Opacity="0.3" BlurRadius="10"/>
-            </Border.Effect>
-            <ContentControl Focusable="False" Content="{Binding DialogContentViewModel}" />
-        </Border>
+        <!-- 複数のダイアログを表示するためのItemsControl -->
+        <ItemsControl ItemsSource="{Binding DialogStack}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <!-- Gridを使用してZ-Indexによる重ね順を制御 -->
+                    <Grid />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            
+            <ItemsControl.ItemContainerStyle>
+                <Style TargetType="ContentPresenter">
+                    <!-- 各ダイアログを全画面に配置 -->
+                    <Setter Property="Grid.Row" Value="0"/>
+                    <Setter Property="Grid.Column" Value="0"/>
+                    <Setter Property="Panel.ZIndex" Value="{Binding ZIndex}"/>
+                </Style>
+            </ItemsControl.ItemContainerStyle>
+            
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <!-- 各ダイアログのコンテナ（全画面） -->
+                    <Grid>
+                        <!-- 背景オーバーレイ -->
+                        <Grid.Background>
+                            <SolidColorBrush Color="Black" Opacity="0.3" />
+                        </Grid.Background>
+                        
+                        <!-- ダイアログ本体 -->
+                        <Border HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                Background="White" 
+                                BorderBrush="LightGray" 
+                                BorderThickness="1" 
+                                Padding="20"
+                                CornerRadius="8">
+                            <Border.Effect>
+                                <DropShadowEffect Color="Black" Direction="315" ShadowDepth="5" Opacity="0.3" BlurRadius="10"/>
+                            </Border.Effect>
+                            <ContentControl Focusable="False" Content="{Binding ContentViewModel}" />
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </Grid>
 </UserControl>
