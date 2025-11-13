@@ -124,7 +124,7 @@ public class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         try
         {
             // 進捗ダイアログを表示し、ViewModelの参照を取得
-            var (progressViewModel, dialogTask) = _dialogService.ShowProgressDialogAsync<ProgressDialogViewModel, ProgressDialogInput, ProgressDialogOutput>(
+            var (progressViewModel, dialogTask) = _dialogService.ShowReactiveDialogAsync<ProgressDialogViewModel, ProgressDialogInput, ProgressDialogOutput>(
                 new ProgressDialogInput(
                     "ファイル処理中",
                     "ファイルを処理しています。しばらくお待ちください...",

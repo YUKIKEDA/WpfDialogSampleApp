@@ -46,16 +46,26 @@ namespace WpfDialogSampleApp.Core.Dialogs.Services
             where TOutput : IDialogContentOutput;
 
         /// <summary>
-        /// 進捗ダイアログを表示し、ViewModelの参照を返します
+        /// リアクティブダイアログを表示し、ViewModelの参照を返します（リアルタイム更新が必要な場合に使用）
         /// </summary>
         /// <typeparam name="TViewModel">ダイアログのViewModelの型</typeparam>
         /// <typeparam name="TInput">入力パラメータの型</typeparam>
         /// <typeparam name="TOutput">出力結果の型</typeparam>
         /// <param name="input">ダイアログに渡す入力パラメータ</param>
         /// <returns>ViewModelの参照とダイアログの実行結果のタスク</returns>
-        (TViewModel viewModel, Task<TOutput> dialogTask) ShowProgressDialogAsync<TViewModel, TInput, TOutput>(TInput input)
+        (TViewModel viewModel, Task<TOutput> dialogTask) ShowReactiveDialogAsync<TViewModel, TInput, TOutput>(TInput input)
             where TViewModel : class, IDialogContentViewModel<TInput, TOutput>
             where TInput : IDialogContentInput
+            where TOutput : IDialogContentOutput;
+
+        /// <summary>
+        /// リアクティブダイアログを表示し、ViewModelの参照を返します（入力パラメータなし、リアルタイム更新が必要な場合に使用）
+        /// </summary>
+        /// <typeparam name="TViewModel">ダイアログのViewModelの型</typeparam>
+        /// <typeparam name="TOutput">出力結果の型</typeparam>
+        /// <returns>ViewModelの参照とダイアログの実行結果のタスク</returns>
+        (TViewModel viewModel, Task<TOutput> dialogTask) ShowReactiveDialogAsync<TViewModel, TOutput>()
+            where TViewModel : class, IDialogContentViewModel<EmptyDialogContentInput, TOutput>
             where TOutput : IDialogContentOutput;
     }
 

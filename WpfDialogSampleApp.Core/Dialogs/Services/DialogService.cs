@@ -45,13 +45,22 @@ namespace WpfDialogSampleApp.Core.Dialogs.Services
             return await _dialogViewModel.ShowAsync(viewModel, new EmptyDialogContentInput());
         }
 
-        public (TViewModel viewModel, Task<TOutput> dialogTask) ShowProgressDialogAsync<TViewModel, TInput, TOutput>(TInput input)
+        public (TViewModel viewModel, Task<TOutput> dialogTask) ShowReactiveDialogAsync<TViewModel, TInput, TOutput>(TInput input)
             where TViewModel : class, IDialogContentViewModel<TInput, TOutput>
             where TInput : IDialogContentInput
             where TOutput : IDialogContentOutput
         {
             var viewModel = CreateViewModel<TViewModel>();
             var dialogTask = _dialogViewModel.ShowAsync(viewModel, input);
+            return (viewModel, dialogTask);
+        }
+
+        public (TViewModel viewModel, Task<TOutput> dialogTask) ShowReactiveDialogAsync<TViewModel, TOutput>()
+            where TViewModel : class, IDialogContentViewModel<EmptyDialogContentInput, TOutput>
+            where TOutput : IDialogContentOutput
+        {
+            var viewModel = CreateViewModel<TViewModel>();
+            var dialogTask = _dialogViewModel.ShowAsync(viewModel, new EmptyDialogContentInput());
             return (viewModel, dialogTask);
         }
 
