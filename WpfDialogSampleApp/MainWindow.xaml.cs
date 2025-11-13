@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using WpfDialogSampleApp.ViewModels;
 
 namespace WpfDialogSampleApp
 {
@@ -14,7 +13,6 @@ namespace WpfDialogSampleApp
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainWindowViewModel();
         }
     }
 }
